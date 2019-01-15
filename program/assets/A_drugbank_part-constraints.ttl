@@ -1,0 +1,46 @@
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix db: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/> .
+@prefix drgs: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/> .
+@prefix dgi: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drug_interactions/> .
+@prefix tg: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/targets/> .
+
+db:ChemStateShape
+    a sh:PropertyShape ;
+    sh:targetClass db:drugs ;
+    sh:path db:state ;
+    sh:in ("Liquid" "Solid" "Gas") .
+
+db:ProperDates
+    a sh:PropertyShape ;
+    sh:targetClass db:drugs;
+    sh:path db:creationDate;
+    sh:minCount 1 .
+
+db:OnlyOneChemicalFormulaShape
+    a sh:PropertyShape;
+    sh:targetClass db:drugs;
+    sh:path db:chemicalFormula ;
+    sh:maxCount 1 .
+    
+db:Name
+    a sh:PropertyShape ;
+    sh:targetClass db:drugs;
+    sh:path db:genericName;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Generic name differs from label.";
+        sh:prefixes db:;
+        sh:select """
+            SELECT $this ?value
+            WHERE {
+                $this $PATH ?value .
+                $this <http://www.w3.org/2000/01/rdf-schema#label> ?label.
+                FILTER (!(str(?value)=str(?label)))
+            }
+        """ ;
+    ].
